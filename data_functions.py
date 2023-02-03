@@ -1,5 +1,6 @@
 import numpy as np
 import argparse
+import numpy as np
 
 
 def parse_arguments():
@@ -29,9 +30,7 @@ def years(gdp, pop, co2):
     co2_years = co2["Year"].unique()
     year = np.intersect1d(pop_years, gdp_years)
     year = np.intersect1d(year, co2_years)
-
     return year
 
-
-
-
+def merge(gdp, pop, co2):
+    
