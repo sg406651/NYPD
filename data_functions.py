@@ -1,19 +1,18 @@
 import numpy as np
 import argparse
-import numpy as np
+
 import pandas as pd
 
 
 def parse_arguments():
-
     parser = argparse.ArgumentParser()
     parser.add_argument("GDP", help="path to GDP file")
     parser.add_argument("POP", help="path to population data file")
     parser.add_argument("CO2", help="path to CO2 emission file")
-    parser.add_argument("--start", type=int,
-                        default=None, help="start of the analyzing interval")
-    parser.add_argument("--end", type=int,
-                        default=None, help="end of the analyzing interval")
+    parser.add_argument("-start", type=int,
+                        default=None, help="start of the analyzing period")
+    parser.add_argument("-end", type=int,
+                        default=None, help="end of the analyzing period")
     args = parser.parse_args()
 
     return args
@@ -61,6 +60,17 @@ def save_to_xlsx(df, output_name: str):
 
 def max_emission(merged_df):
     df_new = merged_df[["Year", "Country", "Per Capita", "Total"]]
-    df_to_xlsx = df_new.groupby("Year")["Per Capita"].nlargest(5)
-    #save_to_xlsx(df_to_xlsx, "Emission.xlsx")
-    return df_to_xlsx
+    series = df_new.groupby("Year")["Per Capita"].nlargest(5).reset_index()
+    index = series["level_1"]
+    df_new = df_new.iloc[index]
+    save_to_xlsx(df_new, "Emission.xlsx")
+
+
+def max_revenue(merged_df):
+    df_new = merged_df[["Year", "Country", "GPD", "Total"]]
+    df_new["GPD"] = df_new["GPD"].fillna(0)
+    df_new["GPD Per Capita"] = df_new["GPD"].divide(df_new["Total"])
+    series = df_new.groupby("Year")["GPD Per Capita"].nlargest(5).reset_index()
+    index = series["level_1"]
+    df_new = df_new.iloc[index]
+    save_to_xlsx(df_new, "Revenue.xlsx")

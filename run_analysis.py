@@ -20,5 +20,5 @@ CO2 = CO2[CO2["Year"].isin(interval)]
 merged_df = f.merge(GDP, POP)
 merged_df = f.merge(CO2, merged_df)
 #f.save_to_xlsx(df, "merged_data.xlsx")
-print(f.max_emission(merged_df))
+f.max_revenue(merged_df)
 
