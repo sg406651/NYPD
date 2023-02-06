@@ -29,12 +29,11 @@ def clean(df):
     return df
 
 
-def years(gdp, pop, co2, args):
+def years(gdp, pop, co2):
     """
     take intersection of years in three dataframes if -start and -end parameters are not passed
     :return: list of years for forward analysis
     """
-    interval = list(range(args[3],args[4]))
     gdp_years = np.array(gdp.columns.tolist())
     gdp_years = gdp_years[4:len(gdp_years)]
     gdp_years = gdp_years.astype(int)
@@ -44,7 +43,6 @@ def years(gdp, pop, co2, args):
     co2_years = co2["Year"].unique()
     year = np.intersect1d(pop_years, gdp_years)
     year = np.intersect1d(year, co2_years)
-    year = np.intersect1d(year,interval)
     return year
 
 
@@ -102,6 +100,8 @@ def max_revenue(merged_df):
     series = df_new.groupby("Year")["GPD Per Capita"].nlargest(5).reset_index()
     index = series["level_1"]
     df_new = df_new.iloc[index]
+    df_new = df_new.loc[:, df_new.columns != 'POP']
+    df_new = df_new.loc[:, df_new.columns != 'Total']
     save_to_xlsx(df_new, "Revenue.xlsx")
 
 
