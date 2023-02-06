@@ -30,3 +30,4 @@ merged_df = f.merge(merged_df, CO2)
 f.max_emission(merged_df)
 f.max_revenue(merged_df)
 f.emission_change(merged_df, interval)
+
