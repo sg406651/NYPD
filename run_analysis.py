@@ -1,7 +1,7 @@
 # data analysis script
 import pandas as pd
 import data_functions as f
-import numpy as np
+
 
 args = f.parse_arguments()
 
@@ -19,6 +19,5 @@ CO2 = CO2[CO2["Year"].isin(interval)]
 
 merged_df = f.merge(GDP, POP)
 merged_df = f.merge(CO2, merged_df)
-#f.save_to_xlsx(df, "merged_data.xlsx")
+# f.save_to_xlsx(df, "merged_data.xlsx")
 print(f.max_emission(merged_df))
-
