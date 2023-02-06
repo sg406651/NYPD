@@ -22,3 +22,4 @@ merged_df = f.merge(CO2, merged_df)
 #f.save_to_xlsx(df, "merged_data.xlsx")
 print(f.max_emission(merged_df))
 
+
