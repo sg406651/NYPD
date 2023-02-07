@@ -25,7 +25,6 @@ interval = list(range(args.start, args.end+1))
 interval2 = f.years(GPD, POP, CO2)
 interval = np.intersect1d(interval, interval2)
 
-print(interval)
 # change dataframes into consistent format and merge them
 GPD = f.consistent_format(GPD, "GPD", interval)
 POP = f.consistent_format(POP, "POP", interval)

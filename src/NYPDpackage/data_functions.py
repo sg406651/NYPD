@@ -133,6 +133,8 @@ def emission_change(merged_df, interval):
         print("Cannot print change in emission for such a short period")
         return 0
     df_new = merged_df[merged_df["Year"].isin([end_year, start_year])]
+    number = df_new.groupby("Country").size().reset_index(name="count")
+    df_new = df_new[df_new["Country"].isin(list(number[number["count"] == 2]["Country"]))]
     negative_start = list(-df_new[df_new["Year"] == start_year]["Per Capita"])
     df_new.loc[df_new["Year"] == start_year, "Per Capita"] = negative_start
     biggest = df_new.groupby("Country")["Per Capita"].sum().nlargest(1).reset_index()
