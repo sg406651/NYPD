@@ -8,7 +8,7 @@ def parse_arguments():
     parse file paths, the start and the end of analysing period
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("GDP", help="path to GDP file")
+    parser.add_argument("GPD", help="path to GPD file")
     parser.add_argument("POP", help="path to population data file")
     parser.add_argument("CO2", help="path to CO2 emission file")
     parser.add_argument("-start", type=int,
@@ -29,24 +29,24 @@ def clean(df):
     return df
 
 
-def years(gdp, pop, co2):
+def years(gpd, pop, co2):
     """
     take intersection of years in three dataframes if -start and -end parameters are not passed
     :return: list of years for forward analysis
     """
-    gdp_years = np.array(gdp.columns.tolist())
-    gdp_years = gdp_years[4:len(gdp_years)]
-    gdp_years = gdp_years.astype(int)
+    gpd_years = np.array(gpd.columns.tolist())
+    gpd_years = gpd_years[4:len(gpd_years)]
+    gpd_years = gpd_years.astype(int)
     pop_years = np.array(pop.columns.tolist())
     pop_years = pop_years[4:len(pop_years)]
     pop_years = pop_years.astype(int)
     co2_years = co2["Year"].unique()
-    year = np.intersect1d(pop_years, gdp_years)
+    year = np.intersect1d(pop_years, gpd_years)
     year = np.intersect1d(year, co2_years)
     return year
 
 
-def consistent_format(df, statistics_name: str, interval: list):
+def consistent_format(df, statistics_name: str, interval):
     """
     :param df: name of the dataframe
     :param statistics_name:
@@ -65,8 +65,22 @@ def merge(df1, df2):
     """
     :return: merged dataframe on "Country" and "Year" columns
     """
-    df = pd.merge(df1, df2, how='left', left_on=["Country", "Year"], right_on=["Country", "Year"])
+    df = pd.merge(df1, df2, how='inner', left_on=["Country", "Year"], right_on=["Country", "Year"])
     return df
+
+
+def data_loss(gpd, pop, co2, merged_df):
+    """
+    print percentage of countries lost during merge
+    """
+    gpd_countries = list(gpd["Country"].unique())
+    pop_countries = list(pop["Country"].unique())
+    co2_countries = list(co2["Country"].unique())
+    countries = gpd_countries + pop_countries + co2_countries
+    countries = len(list(set(countries)))
+    merged_df_countries = len(list(merged_df["Country"].unique()))
+    loss = (countries - merged_df_countries) / countries
+    print("\n \nLoss in data is equal to:", round(loss, 3), "%\n")
 
 
 def save_to_xlsx(df, output_name: str):
@@ -87,10 +101,10 @@ def max_emission(merged_df):
     series = df_new.groupby("Year")["Per Capita"].nlargest(5).reset_index()
     index = series["level_1"]
     df_new = df_new.iloc[index]
-    save_to_xlsx(df_new, "Emission.xlsx")
+    save_to_xlsx(df_new, "top_5_emission.xlsx")
 
 
-def max_revenue(merged_df):
+def max_gpd(merged_df):
     """
     produce xlsx file with sorted top 5 emission GPD per capita for each year
     """
@@ -102,7 +116,7 @@ def max_revenue(merged_df):
     df_new = df_new.iloc[index]
     df_new = df_new.loc[:, df_new.columns != 'POP']
     df_new = df_new.loc[:, df_new.columns != 'Total']
-    save_to_xlsx(df_new, "Revenue.xlsx")
+    save_to_xlsx(df_new, "top_5_GPD.xlsx")
 
 
 def emission_change(merged_df, interval):
@@ -112,14 +126,16 @@ def emission_change(merged_df, interval):
     if len(interval) >= 10:
         end_year = interval[-1]
         start_year = interval[-11]
-        df_new = merged_df[merged_df["Year"].isin([end_year, start_year])]
-        print(df_new[df_new["Year"] == start_year]["Per Capita"])
-        df_new[df_new["Year"] == start_year]["Per Capita"] \
-            = -df_new[df_new["Year"] == start_year]["Per Capita"]
-        print(df_new[df_new["Year"] == start_year]["Per Capita"])
-        biggest = df_new.groupby("Country")["Per Capita"].sum().nlargest(1)
-        smallest = df_new.groupby("Country")["Per Capita"].sum().nsmallest(1)
-        print(biggest)
-        print(smallest)
-    else:
-        return "Interval length too short to give print 10 year emission change"
+    if len(interval) < 10:
+        start_year = interval[0]
+        end_year = interval[-1]
+    if len(interval) == 1:
+        print("Cannot print change in emission for such a short period")
+        return 0
+    df_new = merged_df[merged_df["Year"].isin([end_year, start_year])]
+    negative_start = list(-df_new[df_new["Year"] == start_year]["Per Capita"])
+    df_new.loc[df_new["Year"] == start_year, "Per Capita"] = negative_start
+    biggest = df_new.groupby("Country")["Per Capita"].sum().nlargest(1).reset_index()
+    smallest = df_new.groupby("Country")["Per Capita"].sum().nsmallest(1).reset_index()
+    print("Country with the biggest increase in emission per Capita:\n", biggest.head(), "\n")
+    print("Country with the biggest decrease in emission per Capita:\n", smallest.head())
