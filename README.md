@@ -1,8 +1,11 @@
 Repository contains final project for NYPD in 2023.
 
 It contains data from:
+
 https://data.worldbank.org/indicator/NY.GDP.MKTP.CD
+
 https://data.worldbank.org/indicator/SP.POP.TOTL
+
 https://datahub.io/core/co2-fossil-by-nation
 
 Available package has run_analysis.py script that runs analysis for the data in this format for a given period.
